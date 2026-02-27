@@ -32,7 +32,7 @@ final class ChatViewModel: ObservableObject {
 
     @AppStorage("serverHost") private var serverHost: String = "10.9.50.189"
     @AppStorage("serverPort") private var serverPort: Int = 18789
-    @AppStorage("serverPassword") private var serverPassword: String = ""
+    @AppStorage("serverPassword") private var serverPassword: String = "apartgene073"
 
     private let webSocket = WebSocketManager()
     private let deviceManager = DeviceIdentityManager()
