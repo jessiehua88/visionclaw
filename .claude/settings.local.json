@@ -3,7 +3,9 @@
     "allow": [
       "Bash(gh repo create:*)",
       "Bash(brew install:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
     ]
   }
 }

@@ -1,0 +1,17 @@
+# Xcode user data
+*.xcuserstate
+xcuserdata/
+
+# Build artifacts
+build/
+DerivedData/
+
+# Dependencies (large xcframeworks)
+VisionClaw/Frameworks/
+
+# macOS
+.DS_Store
+
+# CocoaPods / SPM
+Pods/
+.build/
