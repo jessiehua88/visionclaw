@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo create:*)",
+      "Bash(brew install:*)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}
