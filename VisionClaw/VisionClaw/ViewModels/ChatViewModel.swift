@@ -93,7 +93,7 @@ final class ChatViewModel: ObservableObject {
                 "minProtocol": 3,
                 "maxProtocol": 3,
                 "client": [
-                    "id": "visionclaw",
+                    "id": "cli",
                     "version": "1.0.0",
                     "platform": "ios",
                     "mode": "cli"

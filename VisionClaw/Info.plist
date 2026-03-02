@@ -7,5 +7,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>VisionClaw needs microphone access for voice input</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>VisionClaw uses speech recognition to convert your voice to text</string>
 </dict>
 </plist>
