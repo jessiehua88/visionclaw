@@ -19,7 +19,7 @@ final class SessionViewModel: ObservableObject {
     @Published var glassesConnected = false
 
     // User-configurable server settings (persisted across launches)
-    @AppStorage("serverHost") var serverHost: String = "10.9.50.189"
+    @AppStorage("serverHost") var serverHost: String = "192.168.1.117"
     @AppStorage("serverPort") var serverPort: Int = 18789
     @AppStorage("serverPassword") var serverPassword: String = ""
 

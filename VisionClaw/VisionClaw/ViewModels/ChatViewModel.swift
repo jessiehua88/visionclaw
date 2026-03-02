@@ -30,7 +30,7 @@ final class ChatViewModel: ObservableObject {
     @Published var inputText = ""
     @Published var isConnected = false
 
-    @AppStorage("serverHost") private var serverHost: String = "10.9.50.189"
+    @AppStorage("serverHost") private var serverHost: String = "192.168.1.117"
     @AppStorage("serverPort") private var serverPort: Int = 18789
     @AppStorage("serverPassword") private var serverPassword: String = "apartgene073"
 
@@ -63,8 +63,8 @@ final class ChatViewModel: ObservableObject {
                 self.isConnected = (state == .connected && self.authState == .authenticated)
 
                 if state == .connected && self.authState == .disconnected {
-                    self.authState = .waitingForChallenge
-                    print("[Chat] Connected, waiting for challenge from server...")
+                    // Send connect request immediately (no challenge needed when device auth is disabled)
+                    self.sendConnectRequestSimple()
                 }
 
                 if state == .disconnected {
@@ -80,6 +80,35 @@ final class ChatViewModel: ObservableObject {
     private func nextRequestId() -> String {
         requestId += 1
         return "\(requestId)"
+    }
+
+    /// Send a simple connect request with password auth only (no device signing).
+    /// Use this when the server has dangerouslyDisableDeviceAuth enabled.
+    private func sendConnectRequestSimple() {
+        let request: [String: Any] = [
+            "type": "req",
+            "id": nextRequestId(),
+            "method": "connect",
+            "params": [
+                "minProtocol": 3,
+                "maxProtocol": 3,
+                "client": [
+                    "id": "visionclaw",
+                    "version": "1.0.0",
+                    "platform": "ios",
+                    "mode": "cli"
+                ],
+                "role": "operator",
+                "scopes": [] as [String],
+                "caps": [] as [String],
+                "auth": [
+                    "password": serverPassword
+                ]
+            ] as [String: Any]
+        ]
+        authState = .connectSent
+        sendJSON(request)
+        print("[Chat] Sent simple connect request (password only)")
     }
 
     /// Send the connect request WITH the signed challenge included.
@@ -162,7 +191,8 @@ final class ChatViewModel: ObservableObject {
             let payload = json["payload"] as? [String: Any] ?? [:]
 
             if event == "connect.challenge" {
-                if let nonce = payload["nonce"] as? String {
+                // Only handle challenge if we haven't already sent a connect request
+                if authState == .waitingForChallenge, let nonce = payload["nonce"] as? String {
                     // JSONSerialization stores numbers as NSNumber;
                     // cast via NSNumber to handle Int, Double, etc.
                     let ts: Int64
@@ -173,27 +203,29 @@ final class ChatViewModel: ObservableObject {
                     }
                     print("[Chat] Got challenge nonce: \(nonce), ts: \(ts)")
                     self.sendConnectRequest(nonce: nonce, timestamp: ts)
+                } else {
+                    print("[Chat] Ignoring challenge (already connecting or connected)")
                 }
-            } else if event == "chat" {
+            } else if event == "chat" || event == "agent.text" || event == "agent.delta" || event == "message" {
                 // Chat response from the AI — could be full content or streaming delta
                 if let content = payload["content"] as? String {
                     DispatchQueue.main.async {
                         self.messages.append(ChatMessage(role: .assistant, text: content))
                     }
+                } else if let text = payload["text"] as? String {
+                    DispatchQueue.main.async {
+                        self.messages.append(ChatMessage(role: .assistant, text: text))
+                    }
                 } else if let delta = payload["delta"] as? String {
                     DispatchQueue.main.async {
                         self.appendDelta(delta)
                     }
+                } else {
+                    print("[Chat] Event '\(event)' payload: \(payload)")
                 }
             } else {
-                // Other events
-                if let content = payload["text"] as? String ?? payload["message"] as? String ?? payload["content"] as? String {
-                    DispatchQueue.main.async {
-                        self.messages.append(ChatMessage(role: .assistant, text: content))
-                    }
-                } else {
-                    print("[Chat] Event: \(event)")
-                }
+                // Log unknown events to help debug
+                print("[Chat] Unknown event: \(event), payload keys: \(payload.keys)")
             }
 
         case "res":
